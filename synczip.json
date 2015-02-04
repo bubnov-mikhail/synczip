@@ -1,0 +1,12 @@
+{
+   "zip_path":
+   {
+      "url"       : "https://github.com/bubnovKelnik/synczip/archive/master.zip",
+      "tmpdir"    : "/tmp/",
+      "tmpfile"   : "synczip.tmp.zip"
+   },
+   "files_map" :
+   {
+      "synczip-master/composer.json"    : "test/composer.json"
+   }
+}
