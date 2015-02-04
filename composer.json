@@ -1,0 +1,31 @@
+{
+    "name": "bubnovKelnik/synczip",
+    "type": "library",
+    "description": "This is a sort php script. It gets zip file from network, copy all files, described in synczip.json and removes zip",
+    "keywords": ["php", "zip", "web service", "curl"],
+    "homepage": "https://github.com/bubnovKelnik",
+    "license": "MIT",
+
+    "authors": [
+        {
+            "name": "Michail Bubnov",
+            "email": "bubnov.mihail@gmail.com",
+            "homepage": "https://github.com/bubnovKelnik"
+        },
+        {
+            "name": "Guzzle Community",
+            "homepage": "https://github.com/guzzle/guzzle/contributors"
+        }
+    ],
+
+    "require": {
+        "php": ">=5.3.3",
+        "ext-curl": "*"
+    },
+    
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
