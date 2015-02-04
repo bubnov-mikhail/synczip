@@ -1,12 +1,14 @@
 {
    "zip_path":
    {
-      "url"       : "https://github.com/bubnovKelnik/synczip/archive/master.zip",
+      "url"       : "https://github.com/cynicalanlz/ga_libs/archive/master.zip"
       "tmpdir"    : "/tmp/",
       "tmpfile"   : "synczip.tmp.zip"
    },
    "files_map" :
    {
-      "synczip-master/composer.json"    : "test/composer.json"
+      "ga_libs-master/configs/analytics_config_tveda.js"    : "/var/www/configs/analytics_config_tveda.js",      
+      "ga_libs-master/libs/libs_min.js"                     : "/var/www/minified/libs_min.js",
+      "ga_libs-master/libs/lab_min.js"                      : "/var/www/minified/lab_min.js"
    }
-}
+} 
