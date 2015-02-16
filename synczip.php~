@@ -92,32 +92,27 @@ $warnings = array();
 $z = new ZipArchive();
 if ($z->open($zip)) {
     foreach($ini['files_map'] as $from => $dist) {
-       try {
-          $chmod = $dist['chmod'];
-          $to = $dist['saveto'];
-          $data = $z->getFromName($from);
-          if($data){
-             $path = explode('/', $to);
-             array_splice($path, count($path) - 1, 1);
-             $fullPath = $dir;
-             foreach($path as $directory){
-                 if(!file_exists($fullPath.$directory)) {
-                    mkdir($fullPath.$directory,intval($ini['mkdir_chmod'], 8));
-                 }
-                 else {
-                     setChmod($fullPath.$directory, $ini['mkdir_chmod']);             
-                 }
-                 $fullPath .= $directory.'/';  
-             }
-             file_put_contents($dir.$to, $data);
-             setChmod($dir.$to, $chmod);
-             continue;
+       $chmod = $dist['chmod'];
+       $to = $dist['saveto'];
+       $data = $z->getFromName($from);
+       if($data){
+          $path = explode('/', $to);
+          array_splice($path, count($path) - 1, 1);
+          $fullPath = $dir;
+          foreach($path as $directory){
+              if(!file_exists($fullPath.$directory)) {
+                 mkdir($fullPath.$directory,intval($ini['mkdir_chmod'], 8));
+              }
+              else {
+                  setChmod($fullPath.$directory, $ini['mkdir_chmod']);             
+              }
+              $fullPath .= $directory.'/';  
           }
-          $warnings[] = "Warning! Where is no ". $from ." in archive!;";
+          file_put_contents($dir.$to, $data);
+          setChmod($dir.$to, $chmod);
+          continue;
        }
-       catch(Exception $err){
-           $warnings[] = "Warning! Where is an Exception with file ". $from ."! Message: ". $err->getMessage();       
-       }
+       $warnings[] = "Warning! Where is no ". $from ." in archive!;";
     }
 }
 $body = 'Synced with synczip successfully on '.$host;
