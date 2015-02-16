@@ -1,12 +1,16 @@
 {
+   "mailto": "mb@kelnik.ru",
+   "X_Hub_Secret": "myxhubsecret873Rdflw9)sd",
    "zip_path":
    {
       "url"       : "https://github.com/bubnovKelnik/synczip/archive/master.zip",
       "tmpdir"    : "/tmp/",
       "tmpfile"   : "synczip.tmp.zip"
    },
+   "mkdir_chmod": "0777",
    "files_map" :
    {
-      "synczip-master/composer.json"    : "test/composer.json"
+      "synczip-master/README.md"    : {"saveto": "test/README.md", "chmod": "0777"},
+      "synczip-master/composer.json" : {"saveto": "test/composer.json", "chmod": "0777"}
    }
 }
