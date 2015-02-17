@@ -11,6 +11,18 @@ function sendMail($to, $subject, $body, $die = false){
    }
 }
 
+function fileGetContents($url){
+   $ctx = stream_context_create(
+      array(
+         'http'=>array(
+            'method'=>'GET'
+         )
+      )
+   );
+   
+   return file_get_contents($url, 0, $ctx);
+}
+
 function verifyXHubSignature($secret = null){
    if(empty($secret)){
       return true;   
@@ -37,55 +49,65 @@ function verifyXHubSignature($secret = null){
    return $algo . '=' . $payloadHash === $_SERVER[ 'HTTP_X_HUB_SIGNATURE' ];
 }
 
+try{
+   //++++++++++++ INIT SETTINGS +++++++++++++++
+   
+   $host = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
+   $dir = dirname(__FILE__) . '/';
+   if(!file_exists($dir . "synczip.json")){
+      sendMail($ini['mailto'], 'File synczip.json is not found on '. $host, 'File synczip.json is not found on '. $host, true);
+   }
+   $ini = json_decode(file_get_contents($dir . "synczip.json"), true);
+   
+   if(empty($ini['files_map'])) {
+      sendMail($ini['mailto'], 'Files_map is empty - nothing to copy on '. $host, 'Files_map is empty - nothing to copy on '. $host, true);
+   }
+   $url = $ini['zip_path']['url'];
+   $zip = $ini['zip_path']['tmpdir'] . $ini['zip_path']['tmpfile'];
 
-//++++++++++++ INIT SETTINGS +++++++++++++++
-
-$host = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
-$dir = dirname(__FILE__) . '/';
-if(!file_exists($dir . "synczip.json")){
-   sendMail($ini['mailto'], 'File synczip.json is not found on '. $host, 'File synczip.json is not found on '. $host, true);
+   //++++++++++++ FIREWALL +++++++++++++++++++
+   if(!verifyXHubSignature($ini['X_Hub_Secret'])){
+      sendMail($ini['mailto'], 'Error while sync on '. $host, 'Wrong signature on '. $host, true);
+   }
+   
+   
+   //++++++++++++ LOAD ARCHIVE +++++++++++++++
+   if(function_exists('curl_init')){
+      $ch = curl_init($url);
+      if(strpos($url, 'https') === false) 
+      {
+      }
+      else
+      {
+      	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      }
+      
+      curl_setopt($ch, CURLOPT_HEADER, 0);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION , TRUE);
+      curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+      curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      
+      $zipOut = curl_exec($ch);
+      curl_close($ch);
+   }
+   else if(function_exists('file_get_contents') && function_exists('stream_context_create')){
+      $zipOut = fileGetContents($url);
+   }
+   else {
+      sendMail($ini['mailto'], 'Error while sync-zip on '. $host, 'There is no http transport on '. $host, true);
+   }
+   
+   //++++++++++++ WRITE TEMPO FILE +++++++++++++++
+   $fp = fopen($zip, 'w');
+   fwrite($fp, $zipOut);
+   fclose($fp); 
+   unset($zipOut);
 }
-$ini = json_decode(file_get_contents($dir . "synczip.json"), true);
-
-if(empty($ini['files_map'])) {
-   sendMail($ini['mailto'], 'Files_map is empty - nothing to copy on '. $host, 'Files_map is empty - nothing to copy on '. $host, true);
+catch(Exception $err){
+   sendMail($ini['mailto'], 'Exception fired while sync-zip on '.$host, $err->getMessage(), true);
 }
-$url = $ini['zip_path']['url'];
-$zip = $ini['zip_path']['tmpdir'] . $ini['zip_path']['tmpfile'];
-
-
-//++++++++++++ FIREWALL +++++++++++++++++++
-if(!verifyXHubSignature($ini['X_Hub_Secret'])){
-   sendMail($ini['mailto'], 'Error while sync on '. $host, 'Wrong signature on '. $host, true);
-}
-
-
-//++++++++++++ LOAD ARCHIVE +++++++++++++++
-
-$ch = curl_init($url);
-if(strpos($url, 'https') === false) 
-{
-}
-else
-{
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-}
-
-curl_setopt($ch, CURLOPT_HEADER, 0);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION , TRUE);
-curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$zipOut = curl_exec($ch);
-curl_close($ch);
-$fp = fopen($zip, 'w');
-fwrite($fp, $zipOut);
-fclose($fp); 
-unset($zipOut);
-
-
 //++++++++++++ COPY FILES +++++++++++++++
 
 $warnings = array();
@@ -120,9 +142,9 @@ if ($z->open($zip)) {
        }
     }
 }
-$body = 'Synced with synczip successfully on '.$host;
+$body = 'Synced with sync-zip successfully on '.$host;
 $body .= empty($warnings) ? '' : "\nBut there are some problems:\n\n" . implode('\n', $warnings);
-sendMail($ini['mailto'], 'Synced with synczip successfully on '.$host, $body);
+sendMail($ini['mailto'], 'Synced with sync-zip successfully on '.$host, $body);
 
 
 //++++++++++++ CLEAN UP +++++++++++++++
